@@ -7,7 +7,7 @@ Built for PATCH 003: Projection Mapping Lab, at Pennovation Works on Wednesday, 
 
 ![The template on a laptop: art stretched across four pink corner handles](docs/preview.jpg)
 
-**Status:** in progress. Waskar and Jay are building the template before the lab.
+**Status:** used live at PATCH 003 on 09/30/2026. Waskar and Jay keep improving it.
 
 ## Run it on your machine
 
@@ -31,11 +31,34 @@ open index.html
 | E | Hide or show the corners. Hide them before you project |
 | F | Full screen |
 
-## Run it in your browser, with nothing to install
+## Edit it with the text editor you already have
 
-A version in the [p5.js Web Editor](https://editor.p5js.org) is coming before the lab. The link
-goes here. You can edit and run it without an account. To save your work, make a free p5.js account
-first.
+You do not need a code editor. Notepad (Windows) and TextEdit (Mac) work.
+
+**First, unzip the folder.** The page cannot load files from inside a ZIP.
+
+- **Windows:** right-click the ZIP, then **Extract All**.
+- **Mac:** double-click the ZIP.
+
+**Windows, with Notepad:**
+
+1. In the unzipped folder, right-click `art.js`. Choose **Open with**, then **Notepad**.
+2. Change the art. Save with **Ctrl+S**.
+3. Open `index.html` in Chrome. After each save, press **Ctrl+R** to reload.
+
+**Mac, with TextEdit:**
+
+1. Open TextEdit. In the menu bar, click **Edit**, then **Substitutions**. Turn off **Smart
+   Quotes**. TextEdit otherwise changes `"` into curly quotes, and the code stops working.
+2. In the unzipped folder, right-click `art.js`. Choose **Open With**, then **TextEdit**.
+3. Change the art. Save with **Cmd+S**.
+4. Open `index.html` in Chrome. After each save, press **Cmd+R** to reload.
+
+**Nothing shows up?** In Chrome, press **Cmd+Option+J** (Mac) or **Ctrl+Shift+J** (Windows). The
+red text names the line in `art.js` with the mistake.
+
+A version in the [p5.js Web Editor](https://editor.p5js.org), with nothing to download, is planned
+but not ready yet.
 
 ## Put it on a projector
 
@@ -54,12 +77,12 @@ Set the corners after you go full screen. If you leave full screen, set them aga
 **Tip:** the room has to be dark. Anything that is not black on your screen shows up as light on
 the wall.
 
-
+## Make your own art
 
 Open `art.js`. It is the only file you need to change. `drawArt(g)` draws one frame of your art.
 Draw into `g` the way you draw into a normal p5.js canvas: `g.circle(...)`, not `circle(...)`.
 
-Want a head start? The `examples/` folder has four art files:
+Want a head start? The `examples/` folder has seven art files:
 
 | File | What it does |
 |---|---|
@@ -67,6 +90,9 @@ Want a head start? The `examples/` folder has four art files:
 | `examples/noise.js` | A slow, living color field |
 | `examples/text.js` | A word that pulses. Change it to your own word |
 | `examples/particles.js` | Drifting dots with trails. Shows how to use `setupArt()` |
+| `examples/matrix.js` | Green letters raining down, like The Matrix |
+| `examples/skyline.js` | A quiet city skyline at night. Good as a background |
+| `examples/subway.js` | An 8-bit New York subway pillar. Map it onto a real column or box |
 
 To use one, copy its code into `art.js`. Or open `index.html` and change `art.js` to the example's
 path.
@@ -83,15 +109,16 @@ path.
 **Coming next:** more than one surface, so you can map each panel of a board or each face of a
 box. After that, saving your corner positions so a reload does not reset them.
 
-**Known limit:** the corners do not follow the window. If you resize the window or leave full
-screen, set the corners again.
+**Known limit:** when the window changes size, the corners scale with it, so the shape keeps its
+place on the screen. The window edges also move when you enter or leave full screen, so on a
+projector the shape can shift by a few pixels. Set the corners after you go full screen.
 
 ## Files
 
 - `index.html`: the page. It loads the styles and the scripts, and holds no code of its own.
 - `style.css`: the page styles. A black, full-window canvas with no scroll bars.
 - `art.js`: your art. Start here.
-- `examples/`: four art files to copy from.
+- `examples/`: seven art files to copy from.
 - `sketch.js`: the mapping engine. You do not need to change it. `GRID` splits the surface into
   small cells so the image does not bend along the diagonal.
 - `lib/p5.min.js`: p5.js 1.11.13, saved in the repo for offline use.
