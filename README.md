@@ -9,6 +9,9 @@ Built for PATCH 003: Projection Mapping Lab, at Pennovation Works on Wednesday, 
 
 **Status:** used live at PATCH 003 on 09/30/2026. Waskar and Jay keep improving it.
 
+**Try it first, with nothing to install:** [philaconvalley.github.io/projectionMapper](https://philaconvalley.github.io/projectionMapper/).
+Drag the pink corners to see how it works. To change the art, get your own copy below.
+
 ## Run it on your machine
 
 No build step. p5.js is in `lib/`, so it works with no Wi-Fi.
@@ -23,6 +26,11 @@ git clone https://github.com/philaconvalley/projectionMapper.git
 cd projectionMapper
 open index.html
 ```
+
+**Want your own copy on GitHub?** Click the green **Use this template** button at the top of this
+page, then **Create a new repository**. You get a clean copy under your own account that you can
+change and share. A template copy cannot send changes back here. To fix or add something in this
+repo, fork it instead and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Key or mouse | Action |
 |---|---|
