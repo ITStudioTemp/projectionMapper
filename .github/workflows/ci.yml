@@ -26,14 +26,35 @@ jobs:
             node --check "$f"
           done
 
-  links:
-    name: Links
+  smoke:
+    name: Sketches run in a browser
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # The repo has no package.json on purpose: attendees never need npm.
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Load art.js and every example
+        run: node .github/smoke/smoke.mjs
+
+  links:
+    name: Links inside the repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      # --offline checks only links between files in this repo. A contributor
+      # cannot break an external site, so external links are checked weekly
+      # in links-weekly.yml instead of failing their pull request.
       - name: Check links in docs and pages
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress --exclude-path lib './**/*.md' './**/*.html'
+          args: --offline --no-progress --exclude-path lib './**/*.md' './**/*.html'
           fail: true

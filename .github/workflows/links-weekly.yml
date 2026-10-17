@@ -1,0 +1,38 @@
+name: External links weekly
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays, 9:00 AM Eastern (daylight time)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    name: External links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Check every link in docs and pages
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-path lib './**/*.md' './**/*.html'
+          output: lychee-report.md
+          fail: false
+      # One open issue at most: update it if it exists, open it if not.
+      - name: Open or update the broken-links issue
+        if: steps.lychee.outputs.exit_code != 0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Broken external links"
+          number=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file lychee-report.md
+          else
+            gh issue create --title "$title" --body-file lychee-report.md
+          fi
