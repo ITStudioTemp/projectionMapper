@@ -104,8 +104,12 @@ function insideQuad(x, y, c) {
   return inside;
 }
 
+// Keep the surface in place when the window changes size, for example when you press F.
 function windowResized() {
+  const oldW = width;  // resizeCanvas() changes width and height, so save the old size first
+  const oldH = height;
   resizeCanvas(windowWidth, windowHeight);
+  for (const p of corners) p.set((p.x * width) / oldW, (p.y * height) / oldH); // Same share of the window as before
 }
 
 function keyPressed() {

@@ -109,8 +109,9 @@ path.
 **Coming next:** more than one surface, so you can map each panel of a board or each face of a
 box. After that, saving your corner positions so a reload does not reset them.
 
-**Known limit:** the corners do not follow the window. If you resize the window or leave full
-screen, set the corners again.
+**Known limit:** when the window changes size, the corners scale with it, so the shape keeps its
+place on the screen. The window edges also move when you enter or leave full screen, so on a
+projector the shape can shift by a few pixels. Set the corners after you go full screen.
 
 ## Files
 
