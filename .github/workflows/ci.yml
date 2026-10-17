@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # lib/ holds the vendored p5.js build, so only our own files are checked.
+      - name: Check every sketch parses
+        run: |
+          for f in sketch.js art.js examples/*.js; do
+            node --check "$f"
+          done
+
+  links:
+    name: Links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Check links in docs and pages
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-path lib './**/*.md' './**/*.html'
+          fail: true
