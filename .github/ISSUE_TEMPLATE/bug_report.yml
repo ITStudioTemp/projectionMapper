@@ -1,0 +1,49 @@
+name: Bug report
+description: Something does not work the way the README says.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen again
+      placeholder: |
+        1. Open index.html in Chrome
+        2. Press F
+        3. Drag the top-left corner
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Browser and computer
+      placeholder: Chrome 130 on a 2021 MacBook Air
+    validations:
+      required: true
+  - type: dropdown
+    id: projector
+    attributes:
+      label: Were you using a projector?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Red text from the console
+      description: Press Cmd+Option+J (Mac) or Ctrl+Shift+J (Windows). Paste any red text here.
+      render: text
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot or recording
+      description: Optional. Drag files into this box.

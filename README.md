@@ -123,6 +123,10 @@ projector the shape can shift by a few pixels. Set the corners after you go full
   small cells so the image does not bend along the diagonal.
 - `lib/p5.min.js`: p5.js 1.11.13, saved in the repo for offline use.
 
+## Contribute
+
+Made art you want to share, or found a bug? See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 The code uses the MIT license. See `LICENSE`. p5.js uses the LGPL 2.1 license.

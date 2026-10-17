@@ -1,0 +1,36 @@
+name: New art example
+description: Propose art for the examples folder, or share art you made.
+title: "[Art] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing. You can open a pull request directly, too. See CONTRIBUTING.md.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What does the art do?
+      description: One or two sentences. What moves, and what does it look like?
+    validations:
+      required: true
+  - type: textarea
+    id: surface
+    attributes:
+      label: What surface is it for?
+      description: A wall, a box, a column, a board? Optional.
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot, recording, or code
+      description: Drag files into this box, or paste your art.js code.
+  - type: dropdown
+    id: help
+    attributes:
+      label: Do you want to open the pull request yourself?
+      options:
+        - Yes, I will open it
+        - Yes, but I need help
+        - No, I am only sharing the idea
+    validations:
+      required: true
