@@ -111,9 +111,14 @@ example's path.
 ## What the template does
 
 1. **Corners.** Drag the four pink corners onto the corners of your object.
-2. **Warp.** Your art stretches to fit those four corners.
+2. **Warp.** Your art stretches to fit those four corners, in perspective. On a tilted surface, the
+   far side gets less room, the way the projector sees it.
 3. **Move.** Drag inside the shape to move it without changing it.
 4. **Preview.** You see the result on your laptop before you get projector time.
+
+**A corner stops moving?** The four corners must make a proper four-sided shape. If a drag would
+cross two edges into a bow-tie, or push one corner in to make a dent, the corner stays at its last
+good place. Drag it back the other way.
 
 **Coming next:** more than one surface, so you can map each panel of a board or each face of a
 box. After that, saving your corner positions so a reload does not reset them.
@@ -128,8 +133,9 @@ projector the shape can shift by a few pixels. Set the corners after you go full
 - `style.css`: the page styles. A black, full-window canvas with no scroll bars.
 - `art.js`: your art. Start here.
 - `examples/`: seven art files to copy from.
-- `sketch.js`: the mapping engine. You do not need to change it. `GRID` splits the surface into
-  small cells so the image does not bend along the diagonal.
+- `sketch.js`: the mapping engine. You do not need to change it. It warps your art in perspective,
+  with math called a homography. `GRID` splits the surface into small cells so the image does not
+  bend along the diagonal.
 - `lib/p5.min.js`: p5.js 1.11.13, saved in the repo for offline use.
 
 ## Contribute
