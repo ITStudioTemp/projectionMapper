@@ -5,7 +5,8 @@
 // Your drawing area is g.width wide (800) and g.height tall (600).
 // Everything you draw here gets stretched onto the surface you set up with the pink corners.
 //
-// Want a starting point? Open a file in examples/ and copy its drawArt() over this one.
+// Want a starting point? Open a file in examples/. Copy the whole file, and paste it over all of
+// this one. Some examples need more than drawArt(), so copy every line.
 //
 // DRAW YOUR OWN: a cheat sheet
 // (0, 0) is the TOP-LEFT corner. x grows to the right. y grows DOWN. (800, 600) is bottom-right.

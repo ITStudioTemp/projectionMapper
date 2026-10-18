@@ -42,9 +42,20 @@ attendee's copy depends on it, so we plan changes to it before anyone writes cod
 - A different version of p5.js in `lib/`, unless an issue agreed on it first.
 - Large images or video. Keep the repo small enough to download at an event.
 
+## Pick up an issue
+
+1. Find an [open issue](https://github.com/philaconvalley/projectionMapper/issues). New here? Start
+   with one labeled
+   [good first issue](https://github.com/philaconvalley/projectionMapper/labels/good%20first%20issue).
+2. Leave a comment that says you are taking it.
+3. A maintainer, @traksaw or @JayTurn93, assigns the issue to you. Wait for that before you start,
+   so two people do not do the same work.
+4. Stuck? Ask in the issue or in [Discord](https://discord.gg/fxUfeSbFZM).
+5. If you stop, say so in the issue, so someone else can take it.
+
 ## Test before you open a pull request
 
-There are no automatic tests. Check these by hand:
+**Check these by hand.** The automatic checks cannot drag corners or look at a wall.
 
 1. Open `index.html` in Chrome. The art moves.
 2. Drag each pink corner. The art follows.
@@ -52,3 +63,29 @@ There are no automatic tests. Check these by hand:
 4. Press **E**. The corners hide and show again.
 5. Press **F**. The page goes full screen.
 6. Open the console with **Cmd+Option+J** (Mac) or **Ctrl+Shift+J** (Windows). It shows no red text.
+
+**Then GitHub checks your pull request.** Three checks run on their own. You see them at the bottom
+of the pull request:
+
+| Name on the pull request | What it checks |
+|---|---|
+| JavaScript syntax | `sketch.js`, `art.js`, and every file in `examples/` are valid JavaScript |
+| Sketches run in a browser | `art.js` and every example run in Chrome for two seconds with no errors |
+| Links inside the repo | Every link from one file in this repo to another points at a file that exists |
+
+**A check failed?** Click **Details** next to it and read the log. The browser check prints `FAIL`,
+the file name, and the error. Fix it, push again, and the checks run again.
+
+A separate check runs every Monday on links to other websites. It never blocks a pull request.
+
+**Optional: run the browser check on your computer.** You need [Node.js](https://nodejs.org) 22 or
+newer. From the repo folder:
+
+```bash
+npm install --no-save playwright@1.63.0
+npx playwright install chromium
+node .github/smoke/smoke.mjs
+```
+
+It prints one `ok` line for each art file. The install makes a `node_modules/` folder. Git ignores
+it, so it never ends up in your pull request.
