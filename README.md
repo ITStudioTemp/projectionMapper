@@ -102,8 +102,9 @@ Want a head start? The `examples/` folder has seven art files:
 | `examples/skyline.js` | A quiet city skyline at night. Good as a background |
 | `examples/subway.js` | An 8-bit New York subway pillar. Map it onto a real column or box |
 
-To use one, copy its code into `art.js`. Or open `index.html` and change `art.js` to the example's
-path.
+To use one, copy the whole example file, and paste it over all of `art.js`. Some examples need
+more than `drawArt()`, so copy every line. Or open `index.html` and change `art.js` to the
+example's path.
 
 `setupArt(g)` is optional. It runs once at the start. Use it for anything you create only one time.
 
