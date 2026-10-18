@@ -38,6 +38,7 @@ repo, fork it instead and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 | Drag inside the shape | Move the whole shape without changing it |
 | E | Hide or show the corners. Hide them before you project |
 | F | Full screen |
+| B | Blackout: the projector goes dark at once. Press B again to bring the art back |
 
 ## Edit it with the text editor you already have
 

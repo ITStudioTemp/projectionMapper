@@ -34,6 +34,51 @@ const artFiles = ['art.js', ...examples.map((f) => `examples/${f}`)];
 const browser = await chromium.launch();
 let failed = 0;
 
+// Blackout check: B turns every pixel black while the art keeps running, and B again brings it back.
+{
+  const page = await browser.newPage();
+  await page.goto(base);
+  await page.waitForFunction(() => (window.frameCount ?? 0) > 1);
+  // Count lit pixels on the main canvas. Anything above 0 is light on the wall
+  const lit = () => page.evaluate(() => {
+    const c = document.querySelector('canvas');
+    const copy = document.createElement('canvas');
+    copy.width = c.width;
+    copy.height = c.height;
+    const ctx = copy.getContext('2d');
+    ctx.drawImage(c, 0, 0);
+    const d = ctx.getImageData(0, 0, copy.width, copy.height).data;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 0) n++;
+    return n;
+  });
+  // Wrap drawArt() so we can count how often it runs during the blackout
+  await page.evaluate(() => {
+    const original = window.drawArt;
+    window.artCalls = 0;
+    window.drawArt = (g) => { window.artCalls++; original(g); };
+  });
+  const problems = [];
+  if ((await lit()) === 0) problems.push('the art is not showing before the blackout');
+  await page.keyboard.press('b');
+  await page.waitForTimeout(300);
+  const callsBefore = await page.evaluate(() => window.artCalls);
+  await page.waitForTimeout(300);
+  if ((await lit()) !== 0) problems.push('B did not turn every pixel black');
+  if ((await page.evaluate(() => window.artCalls)) <= callsBefore) problems.push('the art stopped running during the blackout');
+  await page.keyboard.press('b');
+  await page.waitForTimeout(300);
+  if ((await lit()) === 0) problems.push('B again did not bring the art back');
+  await page.close();
+  if (problems.length) {
+    failed++;
+    console.log('FAIL blackout');
+    for (const p of problems) console.log(`  ${p}`);
+  } else {
+    console.log('ok   blackout (B goes dark, art keeps running, B comes back)');
+  }
+}
+
 for (const file of artFiles) {
   const page = await browser.newPage();
   const errors = [];

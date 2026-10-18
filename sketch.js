@@ -10,6 +10,7 @@ let dragging = -1;  // Index of the corner being dragged, or -1 for none
 let moving = false; // true while you drag inside the surface to move all four corners together
 let lastMouse;      // Where the mouse was at the last drag event, so each event moves the surface only its own distance
 let editing = true; // true shows the handles; press E to hide them for the projector
+let blackout = false; // true while B keeps the projector dark. Your art keeps running underneath
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -26,6 +27,7 @@ function setup() {
 function draw() {
   background(0);
   drawArt(art);
+  if (blackout) return; // Dark: the art still drew this frame, so it does not jump when it comes back
   translate(-width / 2, -height / 2); // WEBGL puts (0, 0) in the center. Move it to the top-left like 2D mode
   drawWarped(art, corners);
   if (editing) drawHandles();
@@ -72,7 +74,7 @@ function drawHandles() {
 }
 
 function mousePressed() {
-  if (!editing) return;
+  if (!editing || blackout) return; // No moving corners you cannot see
   dragging = corners.findIndex((p) => dist(mouseX, mouseY, p.x, p.y) < HANDLE);
   moving = dragging < 0 && insideQuad(mouseX, mouseY, corners); // No corner hit? Then check for a click inside the surface
   lastMouse = createVector(mouseX, mouseY);
@@ -118,6 +120,18 @@ function keyPressed() {
   }
   if (key === 'e' || key === 'E') {
     editing = !editing;
-    editing ? cursor() : noCursor();
+    updateCursor();
   }
+  if (key === 'b' || key === 'B') {
+    blackout = !blackout;
+    dragging = -1; // Let go of any drag, so nothing moves in the dark
+    moving = false;
+    updateCursor();
+  }
+}
+
+// Show the mouse pointer only while you edit the corners, and never during a blackout.
+// Anything not black on the screen shows up as light on the wall, and that includes the pointer.
+function updateCursor() {
+  editing && !blackout ? cursor() : noCursor();
 }
