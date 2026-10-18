@@ -33,6 +33,7 @@ function draw() {
 
 // Stretch img across the four corners, one row of small cells at a time.
 function drawWarped(img, c) {
+  const m = homography(c); // Work out the warp once per frame, then use it for every point
   noStroke();
   textureMode(NORMAL);
   texture(img);
@@ -41,7 +42,7 @@ function drawWarped(img, c) {
     for (let col = 0; col <= GRID; col++) {
       const u = col / GRID;
       for (const v of [row / GRID, (row + 1) / GRID]) {
-        const p = pointAt(c, u, v);
+        const p = pointAt(m, u, v);
         vertex(p.x, p.y, 0, u, v);
       }
     }
@@ -49,11 +50,43 @@ function drawWarped(img, c) {
   }
 }
 
-// Blend the four corners. u runs left to right, v runs top to bottom, both from 0 to 1.
-function pointAt(c, u, v) {
-  const top = p5.Vector.lerp(c[0], c[1], u);
-  const bottom = p5.Vector.lerp(c[3], c[2], u);
-  return p5.Vector.lerp(top, bottom, v);
+// Find where (u, v) lands on the surface, the way a projector sees it.
+// u runs left to right, v runs top to bottom, both from 0 to 1.
+// Far parts of a tilted surface get less room than near parts, like the ties on a railroad track.
+function pointAt(m, u, v) {
+  const w = m.g * u + m.h * v + 1; // Bigger w means farther away, so the point gets squeezed
+  return createVector((m.a * u + m.b * v + m.c) / w, (m.d * u + m.e * v + m.f) / w);
+}
+
+// The eight numbers that turn a square into your four corners, in perspective. This math is called
+// a homography. The formula is from Paul Heckbert's "square to quad" (1989).
+// Do not name this perspective(): p5.js already has a perspective() for 3D cameras, and it wins.
+function homography(c) {
+  const [p0, p1, p2, p3] = c; // Top-left, top-right, bottom-right, bottom-left
+  const dx1 = p1.x - p2.x, dx2 = p3.x - p2.x, dx3 = p0.x - p1.x + p2.x - p3.x;
+  const dy1 = p1.y - p2.y, dy2 = p3.y - p2.y, dy3 = p0.y - p1.y + p2.y - p3.y;
+  const den = dx1 * dy2 - dx2 * dy1; // Never 0 while isProperShape() holds
+  const g = (dx3 * dy2 - dx2 * dy3) / den; // g and h are the perspective part. Both are 0 for a rectangle
+  const h = (dx1 * dy3 - dx3 * dy1) / den;
+  return {
+    a: p1.x - p0.x + g * p1.x, b: p3.x - p0.x + h * p3.x, c: p0.x,
+    d: p1.y - p0.y + g * p1.y, e: p3.y - p0.y + h * p3.y, f: p0.y,
+    g, h,
+  };
+}
+
+// Can the warp use these corners? Walk around the shape and check that every turn bends the same way.
+// A bow-tie (two edges cross) or a dent breaks the perspective math, so those shapes are refused.
+function isProperShape(c) {
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = c[i], b = c[(i + 1) % 4], d = c[(i + 2) % 4];
+    const turn = (b.x - a.x) * (d.y - b.y) - (b.y - a.y) * (d.x - b.x); // Positive bends one way, negative the other
+    if (turn === 0) return false; // Three corners in a straight line: no shape at all
+    if (sign !== 0 && Math.sign(turn) !== sign) return false;
+    sign = Math.sign(turn);
+  }
+  return true;
 }
 
 function drawHandles() {
@@ -79,7 +112,11 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-  if (dragging >= 0) corners[dragging].set(mouseX, mouseY);
+  if (dragging >= 0) {
+    const last = corners[dragging].copy();
+    corners[dragging].set(mouseX, mouseY);
+    if (!isProperShape(corners)) corners[dragging].set(last); // A bow-tie or a dent. Stay at the last good place
+  }
   if (moving) {
     const step = createVector(mouseX, mouseY).sub(lastMouse); // How far the mouse moved since the last drag event
     for (const p of corners) p.add(step);

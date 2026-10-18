@@ -60,6 +60,36 @@ for (const file of artFiles) {
   }
 }
 
+// Engine check: the perspective warp puts the corners and the center in the right places, and
+// the shape guard refuses a bow-tie. The trapezoid is a wall seen from a projector below it.
+{
+  const page = await browser.newPage();
+  await page.goto(base);
+  await page.waitForFunction(() => (window.frameCount ?? 0) > 1);
+  const problems = await page.evaluate(() => {
+    const out = [];
+    const near = (p, x, y) => Math.abs(p.x - x) < 1e-6 && Math.abs(p.y - y) < 1e-6;
+    const c = [[300, 100], [500, 100], [700, 500], [100, 500]].map(([x, y]) => createVector(x, y));
+    const m = homography(c);
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(([u, v], i) => {
+      if (!near(pointAt(m, u, v), c[i].x, c[i].y)) out.push(`corner ${i} is off`);
+    });
+    const mid = pointAt(m, 0.5, 0.5);
+    if (!near(mid, 400, 200)) out.push(`center is (${mid.x}, ${mid.y}), not (400, 200) where the diagonals cross`);
+    if (!isProperShape(c)) out.push('the trapezoid was refused');
+    if (isProperShape([c[0], c[1], c[3], c[2]])) out.push('a bow-tie was allowed');
+    return out;
+  });
+  await page.close();
+  if (problems.length) {
+    failed++;
+    console.log('FAIL engine');
+    for (const p of problems) console.log(`  ${p}`);
+  } else {
+    console.log('ok   engine (perspective warp and shape guard)');
+  }
+}
+
 await browser.close();
 server.close();
 process.exit(failed ? 1 : 0);
