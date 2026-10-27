@@ -36,9 +36,17 @@ repo, fork it instead and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 |---|---|
 | Drag a pink corner | Move that corner onto the corner of your surface |
 | Drag inside the shape | Move the whole shape without changing it |
-| E | Hide or show the corners. Hide them before you project |
-| F | Full screen |
-| B | Blackout: the projector goes dark at once. Press B again to bring the art back |
+| E | Hide or show the corner markers, editing outline, and mouse pointer |
+| F | Enter or leave full screen |
+| B | Blackout: make the canvas completely black and hide the pointer; press B again to bring the art back |
+
+These are physical key positions: on an English keyboard layout E/F/B are the same keys as
+У/А/И on a Russian layout, not transliterations. They work in either layout. The pointer is visible
+while the markers are shown, except during blackout.
+
+During blackout the art disappears from the canvas on purpose; this is not an error. It keeps
+running underneath and returns when you press B again. The pointer returns only if the markers are
+shown.
 
 ## Edit it with the text editor you already have
 
@@ -79,7 +87,7 @@ but not ready yet.
    screen.
 5. **Click the page, then press F** for full screen.
 6. **Drag the four pink corners onto the corners of your object.** Watch the wall, not your laptop.
-7. **Press E** to hide the corners. Your art now sits only on the object.
+7. **Press E** to hide the corners and pointer before projecting. Press E again to show them.
 
 Set the corners after you go full screen. If you leave full screen, set them again.
 
