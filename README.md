@@ -91,7 +91,7 @@ the wall.
 Open `art.js`. It is the only file you need to change. `drawArt(g)` draws one frame of your art.
 Draw into `g` the way you draw into a normal p5.js canvas: `g.circle(...)`, not `circle(...)`.
 
-Want a head start? The `examples/` folder has seven art files:
+Want a head start? The `examples/` folder has eight art files:
 
 | File | What it does |
 |---|---|
@@ -102,10 +102,15 @@ Want a head start? The `examples/` folder has seven art files:
 | `examples/matrix.js` | Green letters raining down, like The Matrix |
 | `examples/skyline.js` | A quiet city skyline at night. Good as a background |
 | `examples/subway.js` | An 8-bit New York subway pillar. Map it onto a real column or box |
+| `examples/grid.js` | A calibration grid with a border, center marks, and colored corners |
 
 To use one, copy the whole example file, and paste it over all of `art.js`. Some examples need
 more than `drawArt()`, so copy every line. Or open `index.html` and change `art.js` to the
 example's path.
+
+To use the calibration pattern without changing `art.js`, open `index.html` and replace
+`<script src="art.js"></script>` with `<script src="examples/grid.js"></script>`. Save and
+reload the page. After calibrating, change that line back to `<script src="art.js"></script>`.
 
 `setupArt(g)` is optional. It runs once at the start. Use it for anything you create only one time.
 
@@ -133,7 +138,7 @@ projector the shape can shift by a few pixels. Set the corners after you go full
 - `index.html`: the page. It loads the styles and the scripts, and holds no code of its own.
 - `style.css`: the page styles. A black, full-window canvas with no scroll bars.
 - `art.js`: your art. Start here.
-- `examples/`: seven art files to copy from.
+- `examples/`: eight art files to copy from.
 - `sketch.js`: the mapping engine. You do not need to change it. It warps your art in perspective,
   with math called a homography. `GRID` splits the surface into small cells so the image does not
   bend along the diagonal.
