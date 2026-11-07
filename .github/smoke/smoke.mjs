@@ -79,6 +79,109 @@ let failed = 0;
   }
 }
 
+// Physical E, F, and B must preserve projection-mode cursor behavior and browser shortcuts.
+{
+  const page = await browser.newPage();
+  const problems = [];
+  await page.goto(base);
+  await page.waitForFunction(() => (window.frameCount ?? 0) > 1);
+  const state = () => page.evaluate(() => ({
+    editing, blackout, cursor: getComputedStyle(document.querySelector('canvas')).cursor,
+  }));
+  const check = async (label, wantEditing, wantBlackout, hidden) => {
+    const actual = await state();
+    if (actual.editing !== wantEditing || actual.blackout !== wantBlackout || (actual.cursor === 'none') !== hidden) {
+      problems.push(`${label}: ${JSON.stringify(actual)}`);
+    }
+  };
+  const physical = async (key) => page.keyboard.press(key);
+  const localKey = (code, key, options = {}) => page.evaluate(({ code, key, options }) => {
+    const event = new KeyboardEvent('keydown', { code, key, bubbles: true, cancelable: true, ...options });
+    return document.activeElement.dispatchEvent(event);
+  }, { code, key, options });
+
+  await check('initial state', true, false, false);
+  await physical('e');
+  await check('E hides handles and pointer', false, false, true);
+  await physical('b');
+  await check('B keeps the pointer hidden', false, true, true);
+  await physical('e');
+  await check('editing during blackout keeps the pointer hidden', true, true, true);
+  await physical('b');
+  await check('leaving blackout restores the pointer when editing', true, false, false);
+  await physical('b');
+  await check('blackout hides the pointer when editing', true, true, true);
+  await physical('e');
+  await physical('b');
+  await check('leaving blackout keeps the pointer hidden when not editing', false, false, true);
+  await physical('e');
+  await physical('h');
+  await check('H does not change projection modes', true, false, false);
+
+  await localKey('KeyE', 'у');
+  await localKey('KeyB', 'и');
+  await check('Russian key values use physical codes', false, true, true);
+  await localKey('KeyE', 'у');
+  await localKey('KeyB', 'и');
+  await check('Russian key values restore state', true, false, false);
+
+  const russianFullscreen = await page.evaluate(() => {
+    const original = window.fullscreen;
+    let requested;
+    let calls = 0;
+    window.fullscreen = (value) => {
+      if (typeof value === 'boolean') {
+        requested = value;
+        calls++;
+      }
+      return false;
+    };
+    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {
+      code: 'KeyF', key: 'а', bubbles: true, cancelable: true,
+    }));
+    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {
+      code: 'KeyF', key: 'f', ctrlKey: true, bubbles: true, cancelable: true,
+    }));
+    window.fullscreen = original;
+    return requested === true && calls === 1;
+  });
+  if (!russianFullscreen) problems.push('Russian KeyF or Ctrl+F fullscreen behavior is wrong');
+
+  await page.keyboard.down('e');
+  await page.keyboard.down('e'); // A second keydown while held is a repeat, not a second toggle.
+  await page.keyboard.up('e');
+  await check('held E toggles only once', false, false, true);
+  await physical('e');
+  for (const modifier of ['ctrlKey', 'altKey', 'metaKey']) {
+    const defaultAllowed = await localKey('KeyE', 'e', { [modifier]: true });
+    if (!defaultAllowed) problems.push(`${modifier} combination was prevented`);
+  }
+  await check('modified shortcuts do not toggle modes', true, false, false);
+  const defaultAllowed = await localKey('KeyF', 'f', { ctrlKey: true });
+  if (!defaultAllowed) problems.push('Ctrl+F was prevented');
+
+  await page.evaluate(() => {
+    for (const tag of ['input', 'textarea', 'select']) document.body.appendChild(document.createElement(tag));
+    const editable = document.createElement('div');
+    editable.contentEditable = 'true';
+    editable.innerHTML = '<span>editable</span>';
+    document.body.appendChild(editable);
+  });
+  for (const selector of ['input', 'textarea', 'select', '[contenteditable]']) {
+    await page.focus(selector);
+    await physical('e');
+    await check(`${selector} keeps its keystrokes`, true, false, false);
+  }
+  await page.close();
+  if (problems.length) {
+    failed++;
+    console.log('FAIL keyboard');
+    for (const problem of problems) console.log(`  ${problem}`);
+  } else {
+    console.log('ok   keyboard (physical codes, original cursor behavior, repeats, modifiers, editable fields)');
+  }
+}
+
 for (const file of artFiles) {
   const page = await browser.newPage();
   const errors = [];

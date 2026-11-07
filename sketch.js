@@ -151,15 +151,18 @@ function windowResized() {
   for (const p of corners) p.set((p.x * width) / oldW, (p.y * height) / oldH); // Same share of the window as before
 }
 
-function keyPressed() {
-  if (key === 'f' || key === 'F') {
+function keyPressed(event) {
+  const target = event.target;
+  if (event.repeat || event.ctrlKey || event.altKey || event.metaKey ||
+      (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))) return;
+
+  // Use physical key positions, so the shortcuts also work with other keyboard layouts.
+  if (event.code === 'KeyF') {
     fullscreen(!fullscreen());
-  }
-  if (key === 'e' || key === 'E') {
+  } else if (event.code === 'KeyE') {
     editing = !editing;
     updateCursor();
-  }
-  if (key === 'b' || key === 'B') {
+  } else if (event.code === 'KeyB') {
     blackout = !blackout;
     dragging = -1; // Let go of any drag, so nothing moves in the dark
     moving = false;
