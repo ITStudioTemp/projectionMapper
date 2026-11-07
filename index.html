@@ -7,7 +7,13 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="projection-controls" lang="ru">
+    <button id="calibration-grid-toggle" type="button" aria-pressed="false" aria-keyshortcuts="G">Калибровочная сетка</button>
+    <span class="shortcut-hints">G / П — сетка · E / У — маркеры · F / А — полный экран · B / И — затемнение</span>
+  </div>
   <script src="lib/p5.min.js"></script>
+  <!-- Load the grid without taking over the user's drawArt function. -->
+  <script src="examples/grid.js" data-calibration-pattern></script>
   <script src="art.js"></script>
   <!-- To try an example, put examples/stripes.js (or any file in examples/) in place of art.js above. -->
   <script src="sketch.js"></script>

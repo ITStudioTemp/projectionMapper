@@ -11,3 +11,49 @@ body {
 canvas {
   display: block;
 }
+
+/* Small editing controls; E and blackout hide them from the projector. */
+#projection-controls {
+  position: fixed;
+  z-index: 1;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  pointer-events: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font: 13px/1.4 system-ui, sans-serif;
+}
+
+#projection-controls[hidden] {
+  display: none;
+}
+
+#calibration-grid-toggle {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 7px 10px;
+  background: #181818;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#calibration-grid-toggle[aria-pressed="true"] {
+  background: #fff;
+  color: #111;
+}
+
+#calibration-grid-toggle:focus-visible {
+  outline: 2px solid #f0f;
+  outline-offset: 2px;
+}
+
+.shortcut-hints {
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.85);
+}

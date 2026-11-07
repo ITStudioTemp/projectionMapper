@@ -5,6 +5,8 @@ const GRID = 10;    // The surface is split into GRID x GRID cells so the image 
 const HANDLE = 16;  // Corner handle size, in pixels
 
 let art;            // Offscreen buffer. Your sketch draws here, not on the main canvas
+let calibrationArt; // Separate buffer, so the grid never paints over the running art
+let showCalibration = false;
 let corners;        // Four points: top-left, top-right, bottom-right, bottom-left
 let dragging = -1;  // Index of the corner being dragged, or -1 for none
 let moving = false; // true while you drag inside the surface to move all four corners together
@@ -15,6 +17,8 @@ let blackout = false; // true while B keeps the projector dark. Your art keeps r
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   art = createGraphics(800, 600);
+  calibrationArt = createGraphics(art.width, art.height);
+  window.__projectionMapperCalibrationPattern(calibrationArt);
   corners = [
     createVector(width * 0.3, height * 0.3),
     createVector(width * 0.7, height * 0.3),
@@ -22,6 +26,20 @@ function setup() {
     createVector(width * 0.3, height * 0.7),
   ];
   if (typeof setupArt === 'function') setupArt(art); // setupArt() is optional. Your art file only needs drawArt()
+  const controls = document.getElementById('projection-controls');
+  const button = document.getElementById('calibration-grid-toggle');
+  let cornerPress = false;
+  controls.addEventListener('mousedown', (event) => {
+    // A handle beneath the button still needs to be draggable.
+    cornerPress = editing && !blackout && corners.some((p) => dist(event.clientX, event.clientY, p.x, p.y) < HANDLE);
+    if (!cornerPress) event.stopPropagation();
+  });
+  controls.addEventListener('touchstart', (event) => event.stopPropagation(), { passive: true });
+  button.addEventListener('click', (event) => {
+    // Mouse clicks on a handle belong to the surface; keyboard activation still toggles the grid.
+    if (event.detail && cornerPress) return;
+    toggleCalibrationGrid();
+  });
 }
 
 function draw() {
@@ -29,7 +47,7 @@ function draw() {
   drawArt(art);
   if (blackout) return; // Dark: the art still drew this frame, so it does not jump when it comes back
   translate(-width / 2, -height / 2); // WEBGL puts (0, 0) in the center. Move it to the top-left like 2D mode
-  drawWarped(art, corners);
+  drawWarped(showCalibration ? calibrationArt : art, corners);
   if (editing) drawHandles();
 }
 
@@ -162,12 +180,25 @@ function keyPressed(event) {
   } else if (event.code === 'KeyE') {
     editing = !editing;
     updateCursor();
+    updateProjectionControls();
   } else if (event.code === 'KeyB') {
     blackout = !blackout;
     dragging = -1; // Let go of any drag, so nothing moves in the dark
     moving = false;
     updateCursor();
+    updateProjectionControls();
+  } else if (event.code === 'KeyG') {
+    toggleCalibrationGrid();
   }
+}
+
+function toggleCalibrationGrid() {
+  showCalibration = !showCalibration;
+  document.getElementById('calibration-grid-toggle').setAttribute('aria-pressed', String(showCalibration));
+}
+
+function updateProjectionControls() {
+  document.getElementById('projection-controls').hidden = !editing || blackout;
 }
 
 // Show the mouse pointer only while you edit the corners, and never during a blackout.

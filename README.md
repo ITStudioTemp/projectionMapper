@@ -36,12 +36,13 @@ repo, fork it instead and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 |---|---|
 | Drag a pink corner | Move that corner onto the corner of your surface |
 | Drag inside the shape | Move the whole shape without changing it |
-| E | Hide or show the corner markers, editing outline, and mouse pointer |
+| E | Hide or show the corner markers, editing outline, controls, and mouse pointer |
 | F | Enter or leave full screen |
-| B | Blackout: make the canvas completely black and hide the pointer; press B again to bring the art back |
+| B | Blackout: make the canvas completely black and hide the controls and pointer; press B again to bring the art back |
+| G or the calibration button | Switch between the calibration grid and your art |
 
-These are physical key positions: on an English keyboard layout E/F/B are the same keys as
-У/А/И on a Russian layout, not transliterations. They work in either layout. The pointer is visible
+These are physical key positions: on an English keyboard layout E/F/B/G are the same keys as
+У/А/И/П on a Russian layout, not transliterations. They work in either layout. The pointer is visible
 while the markers are shown, except during blackout.
 
 During blackout the art disappears from the canvas on purpose; this is not an error. It keeps
@@ -116,9 +117,10 @@ To use one, copy the whole example file, and paste it over all of `art.js`. Some
 more than `drawArt()`, so copy every line. Or open `index.html` and change `art.js` to the
 example's path.
 
-To use the calibration pattern without changing `art.js`, open `index.html` and replace
-`<script src="art.js"></script>` with `<script src="examples/grid.js"></script>`. Save and
-reload the page. After calibrating, change that line back to `<script src="art.js"></script>`.
+To calibrate without changing `art.js`, click **Калибровочная сетка** or press **G** (the same
+physical key as **П** on a Russian layout). Press it again to return to your art. The art keeps
+running while the grid is shown, and your corner positions stay in place. E hides the button and
+shortcut hints together with the editing handles; B hides them during blackout.
 
 `setupArt(g)` is optional. It runs once at the start. Use it for anything you create only one time.
 
@@ -143,7 +145,7 @@ projector the shape can shift by a few pixels. Set the corners after you go full
 
 ## Files
 
-- `index.html`: the page. It loads the styles and the scripts, and holds no code of its own.
+- `index.html`: the page. It loads the styles, scripts, and editing controls.
 - `style.css`: the page styles. A black, full-window canvas with no scroll bars.
 - `art.js`: your art. Start here.
 - `examples/`: eight art files to copy from.

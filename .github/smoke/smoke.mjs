@@ -182,6 +182,175 @@ let failed = 0;
   }
 }
 
+// The calibration control must not interfere with projection or the running art.
+{
+  const page = await browser.newPage();
+  const problems = [];
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => message.type() === 'error' && errors.push(message.text()));
+  await page.goto(base);
+  await page.waitForFunction(() => (window.frameCount ?? 0) > 1);
+  const button = page.locator('#calibration-grid-toggle');
+  const controls = page.locator('#projection-controls');
+  const check = (condition, message) => { if (!condition) problems.push(message); };
+  if ((await button.count()) !== 1 || (await controls.count()) !== 1) {
+    problems.push('the calibration button or shortcut hints are missing');
+  } else {
+    const pressed = async () => (await button.getAttribute('aria-pressed')) === 'true';
+    const pixel = () => page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const copy = document.createElement('canvas');
+      copy.width = canvas.width;
+      copy.height = canvas.height;
+      const ctx = copy.getContext('2d');
+      ctx.drawImage(canvas, 0, 0);
+      return Array.from(ctx.getImageData(Math.floor(copy.width / 2 + 16), Math.floor(copy.height / 2 + 12), 1, 1).data).slice(0, 3);
+    });
+    const key = (code, value, options = {}) => page.evaluate(({ code, value, options }) => {
+      return document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {
+        code, key: value, bubbles: true, cancelable: true, ...options,
+      }));
+    }, { code, value, options });
+    await page.evaluate(() => {
+      const original = window.drawArt;
+      window.calibrationTestFrames = 0;
+      window.drawArt = (g) => { window.calibrationTestFrames++; original(g); };
+    });
+    check(await button.isVisible() && !(await pressed()), 'button should start visible and off');
+    const hints = await controls.innerText();
+    for (const shortcut of ['G', 'П', 'E', 'У', 'F', 'А', 'B', 'И']) {
+      check(hints.includes(shortcut), `shortcut ${shortcut} is missing from the page`);
+    }
+    await button.click();
+    await page.waitForTimeout(200);
+    check(await pressed(), 'clicking the button did not enable the grid');
+    check((await pixel()).every((v) => v < 10), 'the displayed grid cell is not black');
+    const artPixel = await page.evaluate(() => Array.from(art.canvas.getContext('2d').getImageData(425, 325, 1, 1).data));
+    check(artPixel.slice(0, 3).some((v) => v > 20), 'the grid overwrote the running art buffer');
+    const frames = await page.evaluate(() => window.calibrationTestFrames);
+    await page.waitForTimeout(200);
+    check((await page.evaluate(() => window.calibrationTestFrames)) > frames, 'art stopped while grid was visible');
+    await page.keyboard.press('g');
+    await page.waitForTimeout(200);
+    check(!(await pressed()), 'G did not switch the grid off');
+    check((await pixel()).some((v) => v > 20), 'the art did not reappear after the grid');
+
+    await key('KeyG', 'п');
+    check(await pressed(), 'Russian П did not switch the grid on');
+    await page.keyboard.down('g');
+    await page.keyboard.down('g');
+    await page.keyboard.up('g');
+    check(!(await pressed()), 'holding G did not toggle exactly once');
+    const defaultAllowed = await key('KeyG', 'g', { ctrlKey: true });
+    check(defaultAllowed && !(await pressed()), 'Ctrl+G was intercepted');
+    await page.evaluate(() => {
+      const field = document.createElement('input');
+      field.id = 'calibration-test-input';
+      document.body.appendChild(field);
+      field.focus();
+    });
+    await page.keyboard.press('g');
+    check(!(await pressed()), 'typing in an input toggled the grid');
+    await page.evaluate(() => document.querySelector('#calibration-test-input').remove());
+
+    await page.keyboard.press('g');
+    await page.keyboard.press('e');
+    check(!(await controls.isVisible()) && await pressed(), 'E must hide controls but keep the grid active');
+    await page.keyboard.press('g');
+    check(!(await pressed()), 'G must switch the grid off while controls are hidden');
+    await page.keyboard.press('g');
+    await page.keyboard.press('e');
+    check(await controls.isVisible() && await pressed(), 'E must restore controls and the grid state');
+    await page.keyboard.press('b');
+    check(!(await controls.isVisible()), 'blackout must hide all controls');
+    await page.keyboard.press('b');
+    check(await controls.isVisible() && await pressed(), 'leaving blackout must restore the grid and controls');
+    await page.keyboard.press('e');
+    await page.keyboard.press('b');
+    await page.keyboard.press('b');
+    check(!(await controls.isVisible()), 'leaving blackout must respect hidden projection controls');
+    await page.keyboard.press('e');
+
+    // Move the surface under the button, then drag on the button: the surface must stay put.
+    await page.mouse.move(640, 360);
+    await page.mouse.down();
+    await page.mouse.move(320, 180, { steps: 5 });
+    await page.mouse.up();
+    const before = await page.evaluate(() => corners.map(({ x, y }) => ({ x, y })));
+    const box = await button.boundingBox();
+    const x = box.x + Math.min(box.width - 16, 80);
+    const y = box.y + box.height - 4;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 8, y, { steps: 3 });
+    await page.mouse.up();
+    const after = await page.evaluate(() => corners.map(({ x, y }) => ({ x, y })));
+    check(JSON.stringify(before) === JSON.stringify(after), 'dragging on the button moved the surface underneath');
+
+    // A corner underneath the button must remain draggable.
+    const corner = after[0];
+    const wasPressed = await pressed();
+    await page.mouse.click(corner.x, corner.y);
+    check((await pressed()) === wasPressed, 'clicking a corner under the button toggled the grid');
+    await button.focus();
+    await page.keyboard.press('Space');
+    check((await pressed()) !== wasPressed, 'keyboard activation of the button stopped working');
+    await page.mouse.move(corner.x, corner.y);
+    await page.mouse.down();
+    await page.mouse.move(corner.x + 30, corner.y + 35, { steps: 5 });
+    await page.mouse.up();
+    const movedCorner = await page.evaluate(() => ({ x: corners[0].x, y: corners[0].y }));
+    check(Math.abs(movedCorner.x - corner.x - 30) < 2 && Math.abs(movedCorner.y - corner.y - 35) < 2,
+      'a corner underneath the button could not be dragged');
+
+    const hintBox = await page.locator('.shortcut-hints').boundingBox();
+    await page.mouse.move(movedCorner.x, movedCorner.y);
+    await page.mouse.down();
+    await page.mouse.move(hintBox.x + 40, hintBox.y + hintBox.height / 2, { steps: 5 });
+    await page.mouse.up();
+    const underHint = await page.evaluate(() => ({ x: corners[0].x, y: corners[0].y }));
+    await page.mouse.move(underHint.x, underHint.y);
+    await page.mouse.down();
+    await page.mouse.move(underHint.x + 25, underHint.y + 35, { steps: 5 });
+    await page.mouse.up();
+    const afterHint = await page.evaluate(() => ({ x: corners[0].x, y: corners[0].y }));
+    check(Math.abs(afterHint.x - underHint.x - 25) < 2 && Math.abs(afterHint.y - underHint.y - 35) < 2,
+      'a corner underneath the shortcut hints could not be dragged');
+  }
+  await page.close();
+  problems.push(...errors);
+  if (problems.length) {
+    failed++;
+    console.log('FAIL calibration controls');
+    for (const problem of problems) console.log(`  ${problem}`);
+  } else {
+    console.log('ok   calibration controls (button, grid, G/П, projection, blackout, art and pointer)');
+  }
+}
+
+// A user's art may declare drawArt with const or let instead of a function declaration.
+for (const declaration of ['const', 'let']) {
+  const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.route('**/art.js', (route) => route.fulfill({
+    contentType: 'text/javascript',
+    body: `${declaration} drawArt = (g) => g.background(73, 125, 205);`,
+  }));
+  await page.goto(base);
+  await page.waitForFunction(() => (window.frameCount ?? 0) > 1);
+  const color = await page.evaluate(() => Array.from(art.canvas.getContext('2d').getImageData(200, 200, 1, 1).data));
+  await page.close();
+  if (errors.length || color[0] !== 73 || color[1] !== 125 || color[2] !== 205) {
+    failed++;
+    console.log(`FAIL custom ${declaration} drawArt (${color.join(',')})`);
+    for (const error of errors) console.log(`  ${error}`);
+  } else {
+    console.log(`ok   custom ${declaration} drawArt`);
+  }
+}
+
 for (const file of artFiles) {
   const page = await browser.newPage();
   const errors = [];
